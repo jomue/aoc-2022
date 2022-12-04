@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
 
-func FindElfCarryingMostCalories(input string) int {
+func FindElvesCarryingMostCalories(input string, n int) int {
 	scanner := bufio.NewScanner(strings.NewReader(input))
 
-	mostCalories := 0
+	var mostCalories []int
 	currentElf := 0
 
 	for scanner.Scan() {
@@ -22,17 +23,28 @@ func FindElfCarryingMostCalories(input string) int {
 			n, _ := strconv.Atoi(line)
 			currentElf += n
 		} else {
-			if currentElf > mostCalories {
-				mostCalories = currentElf
-			}
+			mostCalories = append(mostCalories, currentElf)
 			currentElf = 0
 		}
 	}
+	mostCalories = append(mostCalories, currentElf)
+
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	return mostCalories
+	sort.Ints(mostCalories)
+
+	if n > len(mostCalories) {
+		log.Fatal("n is larger than the number of elves ", len(mostCalories))
+	}
+
+	sum := 0
+	for _, cal := range mostCalories[len(mostCalories)-n:] {
+		sum += cal
+	}
+
+	return sum
 }
 
 func main() {
@@ -42,6 +54,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	calories := FindElfCarryingMostCalories(string(input))
+	calories := FindElvesCarryingMostCalories(string(input), 1)
+	fmt.Println(calories)
+
+	calories = FindElvesCarryingMostCalories(string(input), 3)
 	fmt.Println(calories)
 }
