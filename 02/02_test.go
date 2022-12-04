@@ -8,7 +8,7 @@ func TestScoreRockPaperScisscors(t *testing.T) {
 B X
 C Z`
 
-		want := 15
+		want := 12
 		got := ScoreRockPaperScisscors(input)
 
 		if got != want {

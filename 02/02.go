@@ -17,13 +17,28 @@ var ROCK = Shape{"Rock", 1}
 var PAPER = Shape{"Paper", 2}
 var SCISSORS = Shape{"Scissors", 3}
 
+var DEFEATS = map[Shape]Shape{
+	ROCK:     SCISSORS,
+	PAPER:    ROCK,
+	SCISSORS: PAPER,
+}
+
+var LOSES = map[Shape]Shape{
+	ROCK:     PAPER,
+	PAPER:    SCISSORS,
+	SCISSORS: ROCK,
+}
+
 var SYMBOLS = map[string]Shape{
 	"A": ROCK,
 	"B": PAPER,
 	"C": SCISSORS,
-	"X": ROCK,
-	"Y": PAPER,
-	"Z": SCISSORS,
+}
+
+var RESULT_SYMBOLS = map[string]int{
+	"X": LOSS,
+	"Y": DRAW,
+	"Z": WIN,
 }
 
 const (
@@ -31,6 +46,18 @@ const (
 	DRAW = 3
 	WIN  = 6
 )
+
+func (s Shape) against(s2 Shape) int {
+	result := DRAW
+
+	if LOSES[s] == s2 {
+		result = LOSS
+	} else if DEFEATS[s] == s2 {
+		result = WIN
+	}
+
+	return result
+}
 
 func ScoreRockPaperScisscors(input string) int {
 	scanner := bufio.NewScanner(strings.NewReader(input))
@@ -45,8 +72,6 @@ func ScoreRockPaperScisscors(input string) int {
 		log.Fatal(err)
 	}
 
-	fmt.Println(scores)
-
 	sum := 0
 	for _, n := range scores {
 		sum += n
@@ -59,7 +84,9 @@ func parseInputLine(input string) int {
 	symbols := strings.Split(input, " ")
 
 	opponent := getSymbol(symbols[0])
-	me := getSymbol(symbols[1])
+	result := RESULT_SYMBOLS[symbols[1]]
+
+	me := findShape(opponent, result)
 
 	return calculateScore(me, opponent)
 }
@@ -68,41 +95,28 @@ func getSymbol(input string) Shape {
 	return SYMBOLS[input]
 }
 
+func findShape(opponent Shape, result int) Shape {
+	var myShape Shape
+
+	if result == DRAW {
+		myShape = opponent
+	}
+
+	if result == LOSS {
+		myShape = DEFEATS[opponent]
+	}
+
+	if result == WIN {
+		myShape = LOSES[opponent]
+	}
+
+	return myShape
+}
+
 func calculateScore(p1 Shape, p2 Shape) int {
 	score := p1.Score
 
-	if p1 == p2 {
-		score += DRAW
-	}
-
-	if p1 == ROCK {
-		if p2 == PAPER {
-			score += LOSS
-		}
-		if p2 == SCISSORS {
-			score += WIN
-		}
-	}
-
-	if p1 == PAPER {
-		if p2 == ROCK {
-			score += WIN
-		}
-		if p2 == SCISSORS {
-			score += LOSS
-		}
-	}
-
-	if p1 == SCISSORS {
-		if p2 == PAPER {
-			score += WIN
-		}
-		if p2 == ROCK {
-			score += LOSS
-		}
-	}
-
-	fmt.Println(p1, p2, score)
+	score += p1.against(p2)
 
 	return score
 }
